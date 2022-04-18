@@ -152,6 +152,7 @@
 //! [`Sprite`]: https://docs.rs/bevy/0.11.0/bevy/sprite/struct.Sprite.html
 //! [`Transform`]: https://docs.rs/bevy/0.11.0/bevy/transform/components/struct.Transform.html
 
+use std::sync::Arc;
 use std::time::Duration;
 
 #[cfg(feature = "bevy_asset")]
@@ -256,7 +257,7 @@ impl std::ops::Not for AnimatorState {
 }
 
 /// Describe how eased value should be computed.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub enum EaseMethod {
     /// Follow `EaseFunction`.
     EaseFunction(EaseFunction),
@@ -266,7 +267,7 @@ pub enum EaseMethod {
     /// stepping over the discrete limit.
     Discrete(f32),
     /// Use a custom function to interpolate the value.
-    CustomFunction(fn(f32) -> f32),
+    CustomFunction(Arc<dyn Send + Sync + Fn(f32) -> f32>),
 }
 
 impl EaseMethod {
@@ -595,7 +596,7 @@ mod tests {
         assert_eq!(1., ease.sample(0.5));
         assert_eq!(1., ease.sample(1.));
 
-        let ease = EaseMethod::CustomFunction(|f| 1. - f);
+        let ease = EaseMethod::CustomFunction(Arc::new(|f| 1. - f));
         assert_eq!(0., ease.sample(1.));
         assert_eq!(0.5, ease.sample(0.5));
         assert_eq!(1., ease.sample(0.));

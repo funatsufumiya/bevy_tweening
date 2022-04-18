@@ -679,7 +679,7 @@ impl<T> Tweenable<T> for Tween<T> {
         if self.direction.is_backward() {
             factor = 1. - factor;
         }
-        let factor = self.ease_function.sample(factor);
+        let factor = self.ease_function.clone().sample(factor);
         let target = target.target_mut();
         self.lens.lerp(target, factor);
 
