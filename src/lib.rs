@@ -489,11 +489,26 @@ impl<T: Asset> AssetAnimator<T> {
     }
 }
 
+/// Trait to interpolate between two values.
+/// Needed for color.
+#[allow(dead_code)]
+trait ColorLerper {
+    fn lerp(&self, target: &Self, ratio: f32) -> Self;
+}
+
+#[allow(dead_code)]
+impl ColorLerper for Color {
+    fn lerp(&self, target: &Color, ratio: f32) -> Color {
+        let r = self.r().lerp(target.r(), ratio);
+        let g = self.g().lerp(target.g(), ratio);
+        let b = self.b().lerp(target.b(), ratio);
+        let a = self.a().lerp(target.a(), ratio);
+        Color::rgba(r, g, b, a)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "bevy_asset")]
-    use bevy::reflect::TypeUuid;
-
     use super::*;
     use crate::test_utils::*;
 
@@ -508,15 +523,14 @@ mod tests {
     }
 
     #[cfg(feature = "bevy_asset")]
-    #[derive(Debug, Default, Reflect, TypeUuid)]
-    #[uuid = "a33abc11-264e-4bbb-82e8-b87226bb4383"]
+    #[derive(Asset, Debug, Default, Reflect)]
     struct DummyAsset {
         value: f32,
     }
 
     impl Lens<DummyComponent> for DummyLens {
         fn lerp(&mut self, target: &mut DummyComponent, ratio: f32) {
-            target.value = self.start.lerp(&self.end, &ratio);
+            target.value = self.start.lerp(self.end, ratio);
         }
     }
 
@@ -533,7 +547,7 @@ mod tests {
     #[cfg(feature = "bevy_asset")]
     impl Lens<DummyAsset> for DummyLens {
         fn lerp(&mut self, target: &mut DummyAsset, ratio: f32) {
-            target.value = self.start.lerp(&self.end, &ratio);
+            target.value = self.start.lerp(self.end, ratio);
         }
     }
 
@@ -583,23 +597,23 @@ mod tests {
 
         let ease = EaseMethod::EaseFunction(EaseFunction::QuadraticIn);
         assert_eq!(0., ease.sample(0.));
-        assert_eq!(0.25, ease.sample(0.5));
-        assert_eq!(1., ease.sample(1.));
+        assert_eq!(0.25, EaseMethod::EaseFunction(EaseFunction::QuadraticIn).sample(0.5));
+        assert_eq!(1., EaseMethod::EaseFunction(EaseFunction::QuadraticIn).sample(1.));
 
         let ease = EaseMethod::Linear;
         assert_eq!(0., ease.sample(0.));
-        assert_eq!(0.5, ease.sample(0.5));
-        assert_eq!(1., ease.sample(1.));
+        assert_eq!(0.5, EaseMethod::Linear.sample(0.5));
+        assert_eq!(1., EaseMethod::Linear.sample(1.));
 
         let ease = EaseMethod::Discrete(0.3);
         assert_eq!(0., ease.sample(0.));
-        assert_eq!(1., ease.sample(0.5));
-        assert_eq!(1., ease.sample(1.));
+        assert_eq!(1., EaseMethod::Discrete(0.3).sample(0.5));
+        assert_eq!(1., EaseMethod::Discrete(0.3).sample(1.));
 
         let ease = EaseMethod::CustomFunction(Arc::new(|f| 1. - f));
         assert_eq!(0., ease.sample(1.));
-        assert_eq!(0.5, ease.sample(0.5));
-        assert_eq!(1., ease.sample(0.));
+        assert_eq!(0.5, EaseMethod::CustomFunction(Arc::new(|f| 1. - f)).sample(0.5));
+        assert_eq!(1., EaseMethod::CustomFunction(Arc::new(|f| 1. - f)).sample(0.));
     }
 
     #[test]

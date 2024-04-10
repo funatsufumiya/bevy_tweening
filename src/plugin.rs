@@ -173,8 +173,7 @@ mod tests {
             // Simulate time passing by updating the simulation time resource
             {
                 let mut time = self.world.resource_mut::<Time>();
-                let last_update = time.last_update().unwrap();
-                time.update_with_instant(last_update + duration);
+                time.advance_by(duration);
             }
 
             // Reset world-related change detection

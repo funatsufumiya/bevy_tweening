@@ -93,12 +93,15 @@ pub struct TextColorLens {
 #[cfg(feature = "bevy_text")]
 impl Lens<Text> for TextColorLens {
     fn lerp(&mut self, target: &mut Text, ratio: f32) {
+        use crate::ColorLerper as _;
+
         // Note: Add<f32> for Color affects alpha, but not Mul<f32>. So use Vec4 for
         // consistency.
-        let start: Vec4 = self.start.into();
-        let end: Vec4 = self.end.into();
-        let value = start.lerp(end, ratio);
-        target.sections[self.section].style.color = value.into();
+        let value = self.start.lerp(&self.end, ratio);
+
+        if let Some(section) = target.sections.get_mut(self.section) {
+            section.style.color = value;
+        }
     }
 }
 
@@ -335,12 +338,12 @@ pub struct ColorMaterialColorLens {
 #[cfg(feature = "bevy_sprite")]
 impl Lens<ColorMaterial> for ColorMaterialColorLens {
     fn lerp(&mut self, target: &mut ColorMaterial, ratio: f32) {
+        use crate::ColorLerper as _;
+
         // Note: Add<f32> for Color affects alpha, but not Mul<f32>. So use Vec4 for
         // consistency.
-        let start: Vec4 = self.start.into();
-        let end: Vec4 = self.end.into();
-        let value = start.lerp(end, ratio);
-        target.color = value.into();
+        let value = self.start.lerp(&self.end, ratio);
+        target.color = value;
     }
 }
 
@@ -360,12 +363,12 @@ pub struct SpriteColorLens {
 #[cfg(feature = "bevy_sprite")]
 impl Lens<Sprite> for SpriteColorLens {
     fn lerp(&mut self, target: &mut Sprite, ratio: f32) {
+        use crate::ColorLerper as _;
+
         // Note: Add<f32> for Color affects alpha, but not Mul<f32>. So use Vec4 for
         // consistency.
-        let start: Vec4 = self.start.into();
-        let end: Vec4 = self.end.into();
-        let value = start.lerp(end, ratio);
-        target.color = value.into();
+        let value = self.start.lerp(&self.end, ratio);
+        target.color = value;
     }
 }
 
